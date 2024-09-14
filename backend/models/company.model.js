@@ -9,7 +9,6 @@ const companySchema = new mongoose.Schema({
     userId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
     },
     jobPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     createdAt: { type: Date, default: Date.now },
