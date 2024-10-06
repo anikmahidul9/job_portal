@@ -1,8 +1,12 @@
 import { USER_API_ENDPOINT } from "@/utils/constant";
+import { setLoading } from "@/redux/authSlice";
 import axios from "axios";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Button } from "../ui/button";
+import { Loader2 } from "lucide-react";
 
 const Signup = () => {
   const [input,setInput] = useState({
@@ -14,7 +18,9 @@ const Signup = () => {
     file:""
   })
 
+  const { loading } = useSelector((store) => store.auth);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const changeEventHandler = (e)=>{
     setInput({...input,[e.target.name]:e.target.value})
@@ -36,22 +42,24 @@ const Signup = () => {
        formData.append("file", input.file);
     }
 
-    try{
-      const res = await axios.post(`${USER_API_ENDPOINT}/register`,formData,{
+    try {
+      dispatch(setLoading(true));
+      const res = await axios.post(`${USER_API_ENDPOINT}/register`, formData, {
         headers: {
-          'Content-Type':'multipart/form-data'
+          "Content-Type": "multipart/form-data",
         },
-        withCredentials:true,
+        withCredentials: true,
       });
       console.log(res);
-      if(res.data.success){
-        navigate("/login")
+      if (res.data.success) {
+        navigate("/login");
         toast.success(res.data.message);
       }
-    }catch(err){
+    } catch (err) {
       console.error(err);
-      alert("Error signing up");
       // setInput({name: "", email: "", password: "", phoneNumber:"", role:"", file:""})
+    } finally {
+      dispatch(setLoading(false));
     }
     console.log(input);
   }
@@ -182,12 +190,19 @@ const Signup = () => {
 
           {/* Submit Button */}
           <div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
-            >
-              Sign Up
-            </button>
+            {loading ? (
+              <Button className="w-full px-4 py-2">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              </Button>
+            ) : (
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
+              >
+                Sign Up
+              </button>
+            )}
+
             <span className="text-small text-gray-700">
               Already have an account?{" "}
               <Link to="/login" className="text-blue-600">

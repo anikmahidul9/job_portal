@@ -1,8 +1,12 @@
+import { setAuthUser, setLoading } from "@/redux/authSlice";
 import { USER_API_ENDPOINT } from "@/utils/constant";
 import axios from "axios";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Button } from "../ui/button";
+import { Loader2 } from "lucide-react";
 
 const Login = () => {
    const [input, setInput] = useState({
@@ -12,7 +16,9 @@ const Login = () => {
 
    });
 
+   const {loading} = useSelector(store=>store.auth);
    const navigate = useNavigate();
+   const dispatch = useDispatch();
 
    const changeEventHandler = (e) => {
      setInput({ ...input, [e.target.name]: e.target.value });
@@ -23,6 +29,7 @@ const Login = () => {
  
 
     try {
+      dispatch(setLoading(true));
       const res = await axios.post(`${USER_API_ENDPOINT}/login`, input, {
         headers: {
           "Content-Type": "application/json",
@@ -30,17 +37,19 @@ const Login = () => {
         withCredentials: true,
       });
       if (res.data.success) {
+        dispatch(setAuthUser(res.data.user));
         navigate("/");
         toast.success(res.data.message);
       }
     } catch (err) {
       console.error(err);
-      alert("Error signing up");
       setInput({
         email: "",
         password: "",
       
       });
+    }finally{
+      dispatch(setLoading(false));
     }
   };
   return (
@@ -125,12 +134,19 @@ const Login = () => {
 
           {/* Submit Button */}
           <div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
-            >
-              Sign In
-            </button>
+            {loading ? (
+              <Button className="w-full px-4 py-2">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              </Button>
+            ) : (
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
+              >
+                Sign In
+              </button>
+            )}
+
             <span className="text-small text-gray-700">
               Already have an account?{" "}
               <Link to="/signup" className="text-blue-600">

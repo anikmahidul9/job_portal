@@ -70,8 +70,9 @@ export const login = async (req,res)=>{
         role: user.role,
         profile: user.profile,
       }
-     return res.status(200).cookie("token",token,{maxAge:7*24*60*60*1000,httpsOnly:true,sameSite:'strict'}).json({
+     return res.status(200).cookie("token",token,{maxAge:7*24*60*60*1000,httpsOnly:true,sameSite:'none'}).json({
         message:"User successfully signed",
+        user,
         success: true,
         token,
       });
@@ -98,24 +99,28 @@ export const updateProfile = async (req, res) => {
     const { name, phoneNumber, bio, skills, resume, company, profilePhoto } =
       req.body;
 
+    // Filter out undefined fields from the profile object
+    const profileData = {};
+    if (bio !== undefined) profileData["profile.bio"] = bio;
+    if (skills !== undefined) profileData["profile.skills"] = skills;
+    if (resume !== undefined) profileData["profile.resume"] = resume;
+    if (company !== undefined) profileData["profile.company"] = company;
+    if (profilePhoto !== undefined)
+      profileData["profile.profilePhoto"] = profilePhoto;
 
+    // Construct the complete updateData
     const updateData = {
       name,
       phoneNumber,
       updatedAt: new Date(),
-      "profile.bio": bio,
-      "profile.skills": skills,
-      "profile.resume": resume,
-      "profile.company": company,
-      "profile.profilePhoto": profilePhoto,
+      ...profileData, // Spread the filtered profile fields here
     };
-    const userId= await User.findOne(req.id);
+
+    const userId = req.id; // Ensure this is the correct way to retrieve user ID
     const user = await User.findByIdAndUpdate(
       userId,
-      {
-        $set: updateData,
-      },
-      { new: true }
+      { $set: updateData },
+      { new: true } // Return the updated document
     ).exec();
 
     if (!user) {
@@ -130,5 +135,7 @@ export const updateProfile = async (req, res) => {
     return res.status(500).json({ error: "Server error", success: false });
   }
 };
+
+
 
 

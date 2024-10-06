@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     role: { type: String, default: 'user' },
     profile:{
         bio: { type: String},
-        skills: { type: String},
+        skills: { type: [String]},
         resume: { type: String},
         company:{type:mongoose.Schema.Types.ObjectId,ref:'Company'},
         profilePhoto:{
