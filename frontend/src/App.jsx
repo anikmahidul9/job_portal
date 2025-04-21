@@ -1,47 +1,66 @@
-
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import Signup from './components/auth/Signup'
-import Login from './components/auth/Login'
-import Home from './components/Home'
-import JobsDescription from './components/JobsDescription'
-import Browse from './components/Browse'
-import UserProfile from './components/UserProfile'
-
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Signup from './components/auth/Signup';
+import Login from './components/auth/Login';
+import Home from './components/Home';
+import JobsDescription from './components/JobsDescription';
+import Browse from './components/Browse';
+import UserProfile from './components/UserProfile';
+import AdminDashboard from './components/admin/AdminDashboard';
+import ProtectedRoute from './components/admin/ProtectRoute';
+import Unauthorized from './components/Unauthorized';
+import NotFound from './components/NotFound';
 
 const appRouter = createBrowserRouter([
   {
-    path:'/',
-    element:<Home/>,
+    path: '/',
+    element: <Home />,
   },
   {
-    path:'/signup',
-    element:<Signup/>,
+    path: '/signup',
+    element: <Signup />,
   },
   {
-    path:'/login',
-    element:<Login/>,
+    path: '/login',
+    element: <Login />,
   },
   {
-    path:'/job',
-    element:<JobsDescription/>
+    path: '/job',
+    element: <JobsDescription />
   },
   {
-    path:'/browse',
-    element:<Browse/>,
+    path: '/browse',
+    element: <Browse />,
   },
   {
-    path:'/profile',
-    element:<UserProfile/>,
+    path: '/profile',
+    element: (
+      <ProtectedRoute>
+        <UserProfile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/dashboard',
+    element: (
+      <ProtectedRoute allowedRoles={['admin']} redirectPath="/unauthorized">
+        <AdminDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/unauthorized',
+    element: <Unauthorized />,
+  },
+  {
+    path: '*',
+    element: <NotFound />,
   }
-])
+]);
+
 function App() {
-
-
   return (
-    <>
     <RouterProvider router={appRouter} />
-    </>
-  )
+  );
 }
 
-export default App
+export default App;

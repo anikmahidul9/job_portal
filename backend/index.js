@@ -7,6 +7,8 @@ import userRoute from "./routes/user.route.js";
 import companyRoute from "./routes/company.route.js";
 import jobRoute from "./routes/job.route.js";
 import applicationRoute from "./routes/application.route.js"
+import adminRoutes from "./routes/admin.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 dotenv.config({});
 const app = express();
@@ -25,6 +27,8 @@ app.use("/api/v1/user",userRoute);
 app.use("/api/v1/company",companyRoute);
 app.use("/api/v1/job",jobRoute);
 app.use("/api/v1/application",applicationRoute);
+app.use('/api/v1/admin', adminRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 const PORT =process.env.PORT|| 3000
 app.listen(PORT, ()=>{

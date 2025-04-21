@@ -7,7 +7,7 @@ const LatestJobCards = () => {
     >
       <div>
         <h1 className="font-medium text-lg">Job Name</h1>
-        <p className="text-sm text-gray-500">India</p>
+        <p className="text-sm text-gray-500">Bangladesh</p>
       </div>
       <div>
         <h1 className="font-bold text-lg my-2">Job title</h1>

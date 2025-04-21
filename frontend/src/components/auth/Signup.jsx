@@ -9,37 +9,84 @@ import { Button } from "../ui/button";
 import { Loader2 } from "lucide-react";
 
 const Signup = () => {
-  const [input,setInput] = useState({
-    name:"",
-    email:"",
-    password:"",
-    phoneNumber:"",
-    role:"",
-    file:""
-  })
+  const [input, setInput] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
+    role: "user", // Default to 'user' instead of empty string
+    file: null
+  });
 
+  const [errors, setErrors] = useState({});
   const { loading } = useSelector((store) => store.auth);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const changeEventHandler = (e)=>{
-    setInput({...input,[e.target.name]:e.target.value})
-  }
-  const changeFileHandler=(e)=>{
-    setInput({...input,file:e.target.files?.[0]})
+  const validateForm = () => {
+    const newErrors = {};
     
-  }
+    if (!input.name.trim()) newErrors.name = "Name is required";
+    if (!input.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email)) {
+      newErrors.email = "Invalid email format";
+    }
+    if (!input.password) {
+      newErrors.password = "Password is required";
+    } else if (input.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+    if (!input.phoneNumber) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (!/^\d{10,15}$/.test(input.phoneNumber)) {
+      newErrors.phoneNumber = "Invalid phone number";
+    }
+    if (!input.role) newErrors.role = "Please select a role";
 
-  const submitHandler = async (e)=>{
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const changeEventHandler = (e) => {
+    const { name, value } = e.target;
+    setInput({ ...input, [name]: value });
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
+  };
+
+  const changeFileHandler = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type and size
+      if (!file.type.startsWith("image/")) {
+        setErrors({ ...errors, file: "Please upload an image file" });
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) { // 2MB
+        setErrors({ ...errors, file: "File size should be less than 2MB" });
+        return;
+      }
+      setInput({ ...input, file });
+      setErrors({ ...errors, file: "" });
+    }
+  };
+
+  const submitHandler = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+
     const formData = new FormData();
     formData.append("name", input.name);
     formData.append("email", input.email);
     formData.append("password", input.password);
     formData.append("phoneNumber", input.phoneNumber);
     formData.append("role", input.role);
-    if(input.file){
-       formData.append("file", input.file);
+    if (input.file) {
+      formData.append("file", input.file);
     }
 
     try {
@@ -50,27 +97,35 @@ const Signup = () => {
         },
         withCredentials: true,
       });
-      console.log(res);
+
       if (res.data.success) {
+        toast.success(
+          input.role === "recruiter" 
+            ? "Registration successful! Your account is pending admin approval." 
+            : "Registration successful!"
+        );
         navigate("/login");
-        toast.success(res.data.message);
       }
     } catch (err) {
       console.error(err);
-      // setInput({name: "", email: "", password: "", phoneNumber:"", role:"", file:""})
+      const errorMessage = err.response?.data?.error || "Registration failed";
+      toast.error(errorMessage);
+      
+      // Clear sensitive fields on error
+      setInput(prev => ({ ...prev, password: "", file: null }));
     } finally {
       dispatch(setLoading(false));
     }
-    console.log(input);
-  }
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Sign Up</h2>
-        <form onSubmit={submitHandler} className="space-y-6">
+        <h2 className="text-2xl font-bold text-center mb-6">Create Account</h2>
+        <form onSubmit={submitHandler} className="space-y-4">
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name
             </label>
             <input
@@ -79,14 +134,16 @@ const Signup = () => {
               value={input.name}
               onChange={changeEventHandler}
               placeholder="Enter your full name"
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              required
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.name ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+              }`}
             />
+            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
             </label>
             <input
@@ -95,14 +152,16 @@ const Signup = () => {
               value={input.email}
               onChange={changeEventHandler}
               placeholder="Enter your email"
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              required
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.email ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+              }`}
             />
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
@@ -110,110 +169,138 @@ const Signup = () => {
               name="password"
               value={input.password}
               onChange={changeEventHandler}
-              placeholder="Enter your password"
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              required
+              placeholder="Enter your password (min 6 characters)"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.password ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+              }`}
             />
+            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
 
-          {/*Phone Number */}
+          {/* Phone Number */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Phone Number
             </label>
             <input
-              type="number"
+              type="tel"
               name="phoneNumber"
               value={input.phoneNumber}
               onChange={changeEventHandler}
-              placeholder="Enter your Phone number"
-              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-300"
-              required
+              placeholder="Enter your phone number"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                errors.phoneNumber ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+              }`}
             />
+            {errors.phoneNumber && <p className="mt-1 text-sm text-red-600">{errors.phoneNumber}</p>}
           </div>
 
-          {/* Radio Buttons */}
-          <div className="flex items-center space-x-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Sign Up As:
-            </label>
-            <div className="flex items-center">
-              <input
-                id="student"
-                name="role"
-                type="radio"
-                value="student"
-                checked={input.role == "student"}
-                onChange={changeEventHandler}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                required
-              />
-              <label
-                htmlFor="student"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                Student
-              </label>
-            </div>
-            <div className="flex items-center">
-              <input
-                id="recruiter"
-                name="role"
-                type="radio"
-                value="recruiter"
-                checked={input.role == "recruiter"}
-                onChange={changeEventHandler}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                required
-              />
-              <label
-                htmlFor="recruiter"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                Recruiter
-              </label>
-            </div>
-          </div>
-
-          {/* Image Upload */}
+          {/* Role Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Upload Profile Picture
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Register As:
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={changeFileHandler}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <input
+                  id="user"
+                  name="role"
+                  type="radio"
+                  value="user"
+                  checked={input.role === "user"}
+                  onChange={changeEventHandler}
+                  className="hidden peer"
+                />
+                <label
+                  htmlFor="user"
+                  className={`flex flex-col items-center justify-between p-3 border rounded-lg cursor-pointer ${
+                    input.role === "user" ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-50'
+                  } ${errors.role ? 'border-red-500' : ''}`}
+                >
+                  <span className="text-sm font-medium">Candidate</span>
+                </label>
+              </div>
+              <div>
+                <input
+                  id="recruiter"
+                  name="role"
+                  type="radio"
+                  value="recruiter"
+                  checked={input.role === "recruiter"}
+                  onChange={changeEventHandler}
+                  className="hidden peer"
+                />
+                <label
+                  htmlFor="recruiter"
+                  className={`flex flex-col items-center justify-between p-3 border rounded-lg cursor-pointer ${
+                    input.role === "recruiter" ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-50'
+                  } ${errors.role ? 'border-red-500' : ''}`}
+                >
+                  <span className="text-sm font-medium">Recruiter</span>
+                </label>
+              </div>
+            </div>
+            {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role}</p>}
+          </div>
+
+          {/* Profile Picture Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Profile Picture (Optional)
+            </label>
+            <div className="flex items-center gap-4">
+              {input.file && (
+                <div className="h-16 w-16 rounded-full overflow-hidden border border-gray-200">
+                  <img 
+                    src={URL.createObjectURL(input.file)} 
+                    alt="Preview" 
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={changeFileHandler}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+                />
+                {errors.file && <p className="mt-1 text-sm text-red-600">{errors.file}</p>}
+              </div>
+            </div>
           </div>
 
           {/* Submit Button */}
-          <div>
-            {loading ? (
-              <Button className="w-full px-4 py-2">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              </Button>
-            ) : (
-              <button
-                type="submit"
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300"
-              >
-                Sign Up
-              </button>
-            )}
+          <div className="pt-2">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Sign Up"
+              )}
+            </Button>
 
-            <span className="text-small text-gray-700">
+            <div className="text-sm text-center mt-4 text-gray-600">
               Already have an account?{" "}
-              <Link to="/login" className="text-blue-600">
-                Login
+              <Link 
+                to="/login" 
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Log In
               </Link>
-            </span>
+            </div>
           </div>
         </form>
       </div>
     </div>
   );
-}
+};
 
-export default Signup
+export default Signup;

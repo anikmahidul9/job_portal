@@ -1,23 +1,26 @@
 import bcrypt from "bcryptjs";
-import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
+import { User } from "../models/user.model.js";
+
 
 
 export const register = async (req,res)=>{
     try{
         const {name,email,phoneNumber,password,role} = req.body;
         if(!name||!email||!phoneNumber||!password){
-            return res.status(400).json({error: 'All fields are required',
-             success: false
-            });
-           
+            return res.status(400).json({error: 'All fields are required', success: false});
         }
-        const user = await User.findOne({email});
-        if(user){
-            return res.status(400).json({error: 'Email already exists',
-             success: false
-            });
+        
+        // Check for existing email AND phone number
+        const existingUser = await User.findOne({ $or: [{email}, {phoneNumber}] });
+        if(existingUser){
+            if(existingUser.email === email) {
+                return res.status(400).json({error: 'Email already exists', success: false});
+            } else {
+                return res.status(400).json({error: 'Phone number already exists', success: false});
+            }
         }
+
         const hashPassword = await bcrypt.hash(password,10)
         await User.create({
             name,
@@ -25,61 +28,66 @@ export const register = async (req,res)=>{
             phoneNumber,
             password:hashPassword,
             role,
-          
-            
         })
-        return res.status(200).json({message:"Account create Successfully",success:true});
+        return res.status(200).json({message:"Account created successfully",success:true});
     }catch(err){
         console.error(err);
         return res.status(500).json({error: 'Server error', success: false});
     }
 }
 
-export const login = async (req,res)=>{
-    try{
+
+export const login = async (req, res) => {
+  try {
       const { email, password } = req.body;
       if (!email || !password) {
-        return res
-          .status(400)
-          .json({ error: "All fields are required", success: false });
+          return res.status(400).json({ error: "All fields are required", success: false });
       }
+      
       let user = await User.findOne({ email });
       if (!user) {
-        return res
-          .status(400)
-          .json({ error: "User not found", success: false });
+          return res.status(400).json({ error: "User not found", success: false });
       }
+
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res
-          .status(400)
-          .json({ error: "Incorrect password", success: false });
+          return res.status(400).json({ error: "Incorrect password", success: false });
       }
-      // check if role is correct or not
-      if (user.role !== user.role) {
-        return res.status(403).json({ error: "Access denied", success: false });
+
+      // Check if recruiter is approved
+      if (user.role === 'recruiter' && !user.isApproved) {
+          return res.status(403).json({ 
+              error: "Your account is pending approval from admin", 
+              success: false 
+          });
       }
+
       const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-        expiresIn: "7d",
+          expiresIn: "7d",
       });
+      
       user = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        role: user.role,
-        profile: user.profile,
-      }
-     return res.status(200).cookie("token",token,{maxAge:7*24*60*60*1000,httpsOnly:true,sameSite:'none'}).json({
-        message:"User successfully signed",
-        user,
-        success: true,
-        token,
-      });
-    }catch(err){
-        console.error(err);
-        return res.status(500).json({error: 'Server error', success: false});
-    }
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          isApproved: user.isApproved,
+          profile: user.profile,
+      };
+
+      return res.status(200)
+          .cookie("token", token, { maxAge: 7*24*60*60*1000, httpOnly: true, sameSite: 'none' })
+          .json({
+              message: "User successfully signed in",
+              user,
+              success: true,
+              token,
+          });
+  } catch(err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Server error', success: false });
+  }
 }
 
 export const logOut = (req, res) => {
@@ -95,46 +103,55 @@ export const logOut = (req, res) => {
 }
 
 export const updateProfile = async (req, res) => {
-  try {
-    const { name, phoneNumber, bio, skills, resume, company, profilePhoto } =
-      req.body;
-
-    // Filter out undefined fields from the profile object
-    const profileData = {};
-    if (bio !== undefined) profileData["profile.bio"] = bio;
-    if (skills !== undefined) profileData["profile.skills"] = skills;
-    if (resume !== undefined) profileData["profile.resume"] = resume;
-    if (company !== undefined) profileData["profile.company"] = company;
-    if (profilePhoto !== undefined)
-      profileData["profile.profilePhoto"] = profilePhoto;
-
-    // Construct the complete updateData
-    const updateData = {
-      name,
-      phoneNumber,
-      updatedAt: new Date(),
-      ...profileData, // Spread the filtered profile fields here
-    };
-
-    const userId = req.id; // Ensure this is the correct way to retrieve user ID
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { $set: updateData },
-      { new: true } // Return the updated document
-    ).exec();
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found", success: false });
+    try {
+      const { name, phoneNumber, bio, skills, resume, company, profilePhoto } = req.body;
+      const userId = req.id;
+  
+      // Check if phoneNumber is being updated and if it's unique
+      if (phoneNumber) {
+        const existingUser = await User.findOne({ phoneNumber, _id: { $ne: userId } });
+        if (existingUser) {
+          return res.status(400).json({ error: "Phone number already in use", success: false });
+        }
+      }
+  
+      const updateData = {
+        updatedAt: new Date(),
+      };
+  
+      if (name) updateData.name = name;
+      if (phoneNumber) updateData.phoneNumber = phoneNumber;
+  
+      // Profile updates
+      if (bio || skills || resume || company || profilePhoto) {
+        updateData.profile = {};
+        if (bio !== undefined) updateData.profile.bio = bio;
+        if (skills !== undefined) updateData.profile.skills = skills;
+        if (resume !== undefined) updateData.profile.resume = resume;
+        if (company !== undefined) updateData.profile.company = company;
+        if (profilePhoto !== undefined) updateData.profile.profilePhoto = profilePhoto;
+      }
+  
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { $set: updateData },
+        { new: true }
+      ).exec();
+  
+      if (!user) {
+        return res.status(404).json({ error: "User not found", success: false });
+      }
+  
+      return res.status(200).json({ 
+        message: "Profile updated successfully", 
+        success: true, 
+        user 
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Server error", success: false });
     }
-
-    return res
-      .status(200)
-      .json({ message: "Profile updated successfully", success: true, user });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Server error", success: false });
-  }
-};
+  };
 
 
 

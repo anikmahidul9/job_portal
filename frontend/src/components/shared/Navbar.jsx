@@ -1,49 +1,73 @@
-import { LogOut, User2 } from "lucide-react";
+import { LogOut, User2, LayoutDashboard } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-
-
 const Navbar = () => {
-  const {user }= useSelector(store=>store.auth);
-  console.log(user);
+  const { user } = useSelector(store => store.auth);
+  
+
+
+
   return (
-    <div className="bg-white">
-      <div className="flex items-center justify-between mx-auto max-w-7xl h-16">
+    <div className="bg-white shadow-sm">
+      <div className="flex items-center justify-between mx-auto max-w-7xl h-16 px-4">
         <div>
-          <h1 className="text-2xl font-bold">
-            Job <span className="text-[#36A853]">Portal</span>
-          </h1>
+          <Link to="/">
+            <h1 className="text-2xl font-bold">
+              Job <span className="text-[#36A853]">Portal</span>
+            </h1>
+          </Link>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <ul className="flex gap-4 font-medium">
+          <ul className="hidden md:flex gap-6 font-medium">
             <li>
-              <Link to="/" className="text-gray-600 hover:text-gray-900">
+              <Link 
+                to="/" 
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
                 Home
               </Link>
             </li>
             <li>
-              <Link to="/job" className="text-gray-600 hover:text-gray-900">
+              <Link 
+                to="/job" 
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
                 Jobs
               </Link>
             </li>
             <li>
-              <Link to="/browse" className="text-gray-600 hover:text-gray-900">
+              <Link 
+                to="/browse" 
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
                 Browse
               </Link>
             </li>
+            {user?.role === 'admin' && (
+              <li>
+                <Link 
+                  to="/admin/dashboard" 
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Dashboard
+                </Link>
+              </li>
+            )}
           </ul>
+          
           {!user ? (
             <div className="flex items-center gap-2">
               <Link to="/login">
-                <Button variant="outline">Log In</Button>
+                <Button variant="outline" className="hover:bg-gray-100">
+                  Log In
+                </Button>
               </Link>
               <Link to="/signup">
-                {" "}
-                <Button variant="ghost" className="bg-[#36A853] text-white">
+                <Button variant="ghost" className="bg-[#36A853] text-white hover:bg-[#2d8a43]">
                   Sign Up
                 </Button>
               </Link>
@@ -51,40 +75,59 @@ const Navbar = () => {
           ) : (
             <Popover>
               <PopoverTrigger asChild>
-                <Avatar className="cursor-pointer">
-                  <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt="@shadcn"
-                  />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                <div className="flex gap-4 space-y-2">
-                  <Avatar>
+                <div className="flex items-center gap-2 cursor-pointer">
+                  <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src="https://github.com/shadcn.png"
-                      alt="@shadcn"
+                      src={user.profile?.profilePhoto || "https://github.com/shadcn.png"}
+                      alt={user.name}
                     />
+                    <AvatarFallback>
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h4 className="font-medium">{user.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                     {user.role}
+                  <span className="hidden md:inline text-sm font-medium">
+                    {user.name.split(' ')[0]}
+                  </span>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-60 p-2">
+                <div className="flex flex-col gap-1">
+                  <div className="px-2 py-1.5">
+                    <p className="font-medium text-sm">{user.name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">
+                      {user.role}
                     </p>
                   </div>
-                </div>
-                <div className="flex flex-col gap-3 my-2 text-gray-600">
-                  <div className="flex w-fit items-center gap-2 cursor-pointer">
-                    <User2 />
-                    <Link to="/profile">
-                      <Button variant="link">View Profile</Button>
+                  
+                  <Link to="/profile">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start gap-2 text-sm"
+                    >
+                      <User2 className="h-4 w-4" />
+                      Profile
+                    </Button>
+                  </Link>
+                  
+                  {user.role === 'admin' && (
+                    <Link to="/admin/dashboard">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start gap-2 text-sm"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Button>
                     </Link>
-                  </div>
-                  <div className="flex w-fit items-center gap-2 cursor-pointer">
-                    <LogOut />
-                    <Button variant="link">Logout</Button>
-                  </div>
+                  )}
+                  
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start gap-2 text-sm"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
                 </div>
               </PopoverContent>
             </Popover>
@@ -95,4 +138,4 @@ const Navbar = () => {
   );
 }
 
-export default Navbar
+export default Navbar;
