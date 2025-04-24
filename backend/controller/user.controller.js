@@ -91,17 +91,23 @@ export const login = async (req, res) => {
 }
 
 export const logOut = (req, res) => {
-    try{
-        return res.status(200).cookie("token","",{maxAge:0}).json({
-            message:"User successfully logged out",
-            success: true,
+    try {
+      return res.status(200)
+        .cookie("token", "", {
+          maxAge: 0,
+          httpOnly: true,
+          sameSite: 'none',
+          secure: true // Add secure flag if using HTTPS
+        })
+        .json({
+          message: "User successfully logged out",
+          success: true,
         });
-    }catch(err){
-        console.error(err);
-        return res.status(500).json({error: 'Server error', success: false});
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Server error', success: false });
     }
-}
-
+  }
 export const updateProfile = async (req, res) => {
     try {
       const { name, phoneNumber, bio, skills, resume, company, profilePhoto } = req.body;

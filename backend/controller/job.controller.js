@@ -2,31 +2,46 @@ import { Job } from "../models/job.model.js";
 import { User } from "../models/user.model.js";
 
 export const postJob = async (req, res) => {
-    try{
-         const userId = req.id;
-        const { title, companyId, description, location, jobType, salary, skills,position} = req.body;
-        if(!title ||!companyId ||!description ||!location ||!jobType){
-            return res.status(400).json({error: 'All fields are required', success: false});
-        }
-        const jobPost = new Job({
-          title,
-          description,
-          location,
-          jobType,
-          salary,
-          skills,
-          position,
-          company: companyId,
-          created_by:userId,
+    try {
+      const userId = req.id;
+      const { title, company, description, location, jobType } = req.body;
+  
+      // Validate required fields
+      if (!title || !company || !description || !location || !jobType) {
+        return res.status(400).json({
+          error: 'All required fields must be provided',
+          success: false,
+          requiredFields: ['title', 'company', 'description', 'location', 'jobType']
         });
-        await jobPost.save();
-        return res.status(201).json({ message: 'Job Post created successfully', success: true, jobPost });
-    }catch(err){
-        console.error(err);
-        return res.status(500).json({ error: 'Server error', success: false });
+      }
+  
+      const jobPost = new Job({
+        title,
+        description,
+        location,
+        jobType,
+        salary: req.body.salary,
+        skills: req.body.skills || [],
+        position: req.body.position,
+        company,  // Using 'company' to match model
+        created_by: userId
+      });
+  
+      await jobPost.save();
+  
+      return res.status(201).json({ 
+        message: 'Job Post created successfully', 
+        success: true, 
+        jobPost 
+      });
+    } catch (err) {
+      console.error('Job creation error:', err);
+      return res.status(500).json({ 
+        error: err.message || 'Server error', 
+        success: false 
+      });
     }
-}
-
+  }
 export const getAllJobs = async (req, res) =>{
     const keywords = req.query.keywords || [];
     const query = {

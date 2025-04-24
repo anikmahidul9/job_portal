@@ -2,13 +2,19 @@ import { LogOut, User2, LayoutDashboard } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/redux/authSlice";
 
 const Navbar = () => {
   const { user } = useSelector(store => store.auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   
-
+  const handleLogout = () => {
+    dispatch(logout()); // Dispatch logout action
+    navigate('/'); 
+  };
 
 
   return (
@@ -51,6 +57,16 @@ const Navbar = () => {
               <li>
                 <Link 
                   to="/admin/dashboard" 
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  Dashboard
+                </Link>
+              </li>
+            )}
+            {user?.role === 'recruiter' && (
+              <li>
+                <Link 
+                  to="/recruiter/dashboard" 
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   Dashboard
@@ -120,10 +136,22 @@ const Navbar = () => {
                       </Button>
                     </Link>
                   )}
+                  {user.role === 'recruiter' && (
+                    <Link to="/recruiter/dashboard">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start gap-2 text-sm"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Dashboard
+                      </Button>
+                    </Link>
+                  )}
                   
                   <Button 
                     variant="ghost" 
                     className="w-full justify-start gap-2 text-sm"
+                    onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4" />
                     Logout

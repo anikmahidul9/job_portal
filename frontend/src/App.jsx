@@ -9,6 +9,8 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import ProtectedRoute from './components/admin/ProtectRoute';
 import Unauthorized from './components/Unauthorized';
 import NotFound from './components/NotFound';
+import RecruiterRoute from './components/recruiter/ProtectedRoute';
+import RecruiterDashboard from './components/recruiter/RecruiterDashboard';
 
 const appRouter = createBrowserRouter([
   {
@@ -47,6 +49,15 @@ const appRouter = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+   {
+    path:'/recruiter/dashboard',
+    element: (
+      <RecruiterRoute allowedRoles={['recruiter']} redirectPath="/unauthorized">
+        <RecruiterDashboard/>
+      </RecruiterRoute>
+    ),
+
+   },
   {
     path: '/unauthorized',
     element: <Unauthorized />,
