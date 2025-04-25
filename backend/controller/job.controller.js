@@ -52,7 +52,9 @@ export const getAllJobs = async (req, res) =>{
             { skills: { $all: keywords } },
         ],
     }
-    const jobs = await Job.find(query);
+    const jobs = await Job.find(query)
+    .populate("company", "name logo") // Populate the company field with only the name
+    .exec();
     if(!jobs){
         return res.status(404).json({ message: 'No jobs found', success: false });
     }

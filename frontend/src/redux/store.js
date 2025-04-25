@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
 import adminReducer from './adminSlice';
 import recruiterReducer from './recruiterSlice';
+import jobReducer from './jobSlice';
 import { loadState, saveState } from '@/utils/localstorage';
 
 const persistedState = loadState(); // Implement this to load from localStorage
@@ -11,6 +12,7 @@ const store = configureStore({
     auth: authReducer,
     admin:adminReducer,
     recruiter: recruiterReducer,
+    jobs: jobReducer, 
   },
   preloadedState: persistedState
 });
