@@ -23,7 +23,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 const corsOptions = {
-    origin: ['http://localhost:5173',], // Allow specific origins
+    origin: ['http://localhost:5173', 'https://job-portal-theta-ten.vercel.app/'], // Allow specific origins
+   
     credentials: true,
 }
 app.use(cors(corsOptions));
