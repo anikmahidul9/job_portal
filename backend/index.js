@@ -22,8 +22,13 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+const allowedOrigins = [
+    "https://job-portal-theta-ten.vercel.app", // Your Vercel frontend
+    "http://localhost:5173",                  // Local dev
+  ];
+  
 const corsOptions = {
-    origin: ['http://localhost:5173', 'https://job-portal-theta-ten.vercel.app/'], // Allow specific origins
+    origin: allowedOrigins,
    
     credentials: true,
 }
