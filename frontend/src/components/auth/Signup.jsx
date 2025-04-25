@@ -14,10 +14,11 @@ const Signup = () => {
     email: "",
     password: "",
     phoneNumber: "",
-    role: "user", // Default to 'user' instead of empty string
-    file: null
+    role: "user",
   });
 
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [preview, setPreview] = useState("");
   const [errors, setErrors] = useState({});
   const { loading } = useSelector((store) => store.auth);
   const navigate = useNavigate();
@@ -51,26 +52,27 @@ const Signup = () => {
   const changeEventHandler = (e) => {
     const { name, value } = e.target;
     setInput({ ...input, [name]: value });
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: "" });
     }
   };
 
-  const changeFileHandler = (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type and size
+      // Validate file type
       if (!file.type.startsWith("image/")) {
-        setErrors({ ...errors, file: "Please upload an image file" });
+        setErrors({ ...errors, profilePhoto: "Please upload an image file (JPEG, PNG)" });
         return;
       }
-      if (file.size > 2 * 1024 * 1024) { // 2MB
-        setErrors({ ...errors, file: "File size should be less than 2MB" });
+      // Validate file size (2MB max)
+      if (file.size > 2 * 1024 * 1024) {
+        setErrors({ ...errors, profilePhoto: "File size should be less than 2MB" });
         return;
       }
-      setInput({ ...input, file });
-      setErrors({ ...errors, file: "" });
+      setProfilePhoto(file);
+      setPreview(URL.createObjectURL(file));
+      setErrors({ ...errors, profilePhoto: "" });
     }
   };
 
@@ -85,8 +87,8 @@ const Signup = () => {
     formData.append("password", input.password);
     formData.append("phoneNumber", input.phoneNumber);
     formData.append("role", input.role);
-    if (input.file) {
-      formData.append("file", input.file);
+    if (profilePhoto) {
+      formData.append("profilePhoto", profilePhoto);
     }
 
     try {
@@ -112,7 +114,9 @@ const Signup = () => {
       toast.error(errorMessage);
       
       // Clear sensitive fields on error
-      setInput(prev => ({ ...prev, password: "", file: null }));
+      setInput(prev => ({ ...prev, password: "" }));
+      setProfilePhoto(null);
+      setPreview("");
     } finally {
       dispatch(setLoading(false));
     }
@@ -123,6 +127,40 @@ const Signup = () => {
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-center mb-6">Create Account</h2>
         <form onSubmit={submitHandler} className="space-y-4">
+          {/* Profile Picture Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Profile Picture (Optional)
+            </label>
+            <div className="flex items-center gap-4">
+              {preview ? (
+                <div className="h-16 w-16 rounded-full overflow-hidden border border-gray-200">
+                  <img 
+                    src={preview} 
+                    alt="Preview" 
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-500 text-xs">No photo</span>
+                </div>
+              )}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  id="profilePhoto"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
+                />
+                {errors.profilePhoto && (
+                  <p className="mt-1 text-sm text-red-600">{errors.profilePhoto}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -241,33 +279,6 @@ const Signup = () => {
               </div>
             </div>
             {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role}</p>}
-          </div>
-
-          {/* Profile Picture Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Profile Picture (Optional)
-            </label>
-            <div className="flex items-center gap-4">
-              {input.file && (
-                <div className="h-16 w-16 rounded-full overflow-hidden border border-gray-200">
-                  <img 
-                    src={URL.createObjectURL(input.file)} 
-                    alt="Preview" 
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="flex-1">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={changeFileHandler}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
-                />
-                {errors.file && <p className="mt-1 text-sm text-red-600">{errors.file}</p>}
-              </div>
-            </div>
           </div>
 
           {/* Submit Button */}

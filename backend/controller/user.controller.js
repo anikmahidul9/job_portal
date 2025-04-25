@@ -4,36 +4,55 @@ import { User } from "../models/user.model.js";
 
 
 
-export const register = async (req,res)=>{
-    try{
-        const {name,email,phoneNumber,password,role} = req.body;
-        if(!name||!email||!phoneNumber||!password){
-            return res.status(400).json({error: 'All fields are required', success: false});
-        }
-        
-        // Check for existing email AND phone number
-        const existingUser = await User.findOne({ $or: [{email}, {phoneNumber}] });
-        if(existingUser){
-            if(existingUser.email === email) {
-                return res.status(400).json({error: 'Email already exists', success: false});
-            } else {
-                return res.status(400).json({error: 'Phone number already exists', success: false});
-            }
-        }
+export const register = async (req, res) => {
+  try {
+      const { name, email, phoneNumber, password, role } = req.body;
+      if (!name || !email || !phoneNumber || !password) {
+          return res.status(400).json({ error: 'All fields are required', success: false });
+      }
 
-        const hashPassword = await bcrypt.hash(password,10)
-        await User.create({
-            name,
-            email,
-            phoneNumber,
-            password:hashPassword,
-            role,
-        })
-        return res.status(200).json({message:"Account created successfully",success:true});
-    }catch(err){
-        console.error(err);
-        return res.status(500).json({error: 'Server error', success: false});
-    }
+      // Check for existing email AND phone number
+      const existingUser = await User.findOne({ $or: [{ email }, { phoneNumber }] });
+      if (existingUser) {
+          if (existingUser.email === email) {
+              return res.status(400).json({ error: 'Email already exists', success: false });
+          } else {
+              return res.status(400).json({ error: 'Phone number already exists', success: false });
+          }
+      }
+
+      const hashPassword = await bcrypt.hash(password, 10);
+      
+      const newUser = new User({
+          name,
+          email,
+          phoneNumber,
+          password: hashPassword,
+          role,
+      });
+
+      // Handle profile photo if uploaded
+      if (req.file) {
+          newUser.profile.profilePhoto = `/uploads/profile-photos/${req.file.filename}`;
+      }
+
+      await newUser.save();
+      
+      return res.status(201).json({
+          message: "Account created successfully",
+          success: true,
+          user: {
+              _id: newUser._id,
+              name: newUser.name,
+              email: newUser.email,
+              role: newUser.role,
+              profile: newUser.profile
+          }
+      });
+  } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Server error', success: false });
+  }
 }
 
 

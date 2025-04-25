@@ -94,8 +94,8 @@ const Navbar = () => {
                 <div className="flex items-center gap-2 cursor-pointer">
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src={user.profile?.profilePhoto || "https://github.com/shadcn.png"}
-                      alt={user.name}
+                      src={`http://localhost:8000${user.profile.profilePhoto}`}
+                      
                     />
                     <AvatarFallback>
                       {user.name.charAt(0).toUpperCase()}

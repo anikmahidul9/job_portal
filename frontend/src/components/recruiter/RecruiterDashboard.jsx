@@ -4,14 +4,19 @@ import { Tab } from '@headlessui/react';
 import MyJobs from './MyJobs';
 import PostJobForm from './PostJobForm';
 import CompanyProfile from '../company/CompanyProfile';
+import Navbar from '../shared/Navbar';
 
 
 
 const RecruiterDashboard = () => {
   const { user } = useSelector(state => state.auth);
+  console.log(user);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   return (
+    <>
+      <Navbar/>
+
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Recruiter Dashboard</h1>
@@ -64,6 +69,7 @@ const RecruiterDashboard = () => {
         </Tab.Panels>
       </Tab.Group>
     </div>
+    </>
   );
 };
 

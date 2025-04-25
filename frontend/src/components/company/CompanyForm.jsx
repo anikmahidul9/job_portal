@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 
-export default function CompanyForm({ existingCompany }) {
+export default function CompanyForm({ existingCompany, onSuccess }) {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.recruiter) || {};
   const [formData, setFormData] = useState({
@@ -30,10 +30,18 @@ export default function CompanyForm({ existingCompany }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (existingCompany) {
-      await dispatch(updateCompanyProfile({ companyId: existingCompany._id, updateData: formData }));
-    } else {
-      await dispatch(registerCompany(formData));
+    try {
+      if (existingCompany) {
+        await dispatch(updateCompanyProfile({ 
+          companyId: existingCompany._id, 
+          updateData: formData 
+        }));
+      } else {
+        await dispatch(registerCompany(formData));
+      }
+      if (onSuccess) onSuccess();
+    } catch (error) {
+      console.error("Company operation failed:", error);
     }
   };
 

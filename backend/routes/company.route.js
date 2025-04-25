@@ -9,7 +9,7 @@ router.route("/register").post(isAuthenticated, registerCompany);
 router.route("/get").get(getCompany)
 router.route("/recruiter").get(isAuthenticated, getCompanyByRecruiter);
 router.route("/get/:id").get(isAuthenticated, getCompanyById);
-router.route("/update/:id").post(isAuthenticated, updateCompany);
+router.route("/update/:id").put(isAuthenticated, updateCompany);
 
 
 export default router;

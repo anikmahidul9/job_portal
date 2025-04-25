@@ -66,6 +66,20 @@ export const registerCompany = createAsyncThunk(
       }
     }
   );
+  export const getCompanyProfile = createAsyncThunk(
+    'recruiter/getCompany',
+    async (_, { rejectWithValue }) => {
+      try {
+        const { data } = await recruiterApi.get('company/recruiter'); // Ensure this matches your backend route
+        console.log('API Response:', data); // Debug log
+        return data.company;
+      } catch (error) {
+        console.error('API Error:', error.response?.data || error.message); // Debug log
+        return rejectWithValue(error.response?.data || error.message);
+      }
+    }
+  );
+  
 export const updateCompanyProfile = createAsyncThunk(
   'recruiter/updateCompany',
   async ({ companyId, updateData }, { rejectWithValue }) => {
@@ -77,20 +91,6 @@ export const updateCompanyProfile = createAsyncThunk(
     }
   }
 );
-export const getCompanyProfile = createAsyncThunk(
-    'recruiter/getCompany',
-    async (_, { rejectWithValue }) => {
-      try {
-        const { data } = await recruiterApi.get('company/recruiter');
-        if (!data.success) {
-          throw new Error(data.message || 'Company not found');
-        }
-        return data.company;
-      } catch (error) {
-        return rejectWithValue(error.response?.data || error.message);
-      }
-    }
-  );
 
 const recruiterSlice = createSlice({
   name: 'recruiter',
@@ -132,19 +132,46 @@ const recruiterSlice = createSlice({
         state.error = action.payload?.error || action.error.message;
       })
       
-      // Update Company
-      .addCase(updateCompanyProfile.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateCompanyProfile.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentCompany = action.payload; // Changed from company to currentCompany
-      })
-      .addCase(getCompanyProfile.fulfilled, (state, action) => {
-        state.loading = false;
-        state.currentCompany = action.payload;
-      })
+  // Get Company Profile
+  .addCase(getCompanyProfile.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+  })
+  .addCase(getCompanyProfile.fulfilled, (state, action) => {
+    state.loading = false;
+    state.currentCompany = action.payload;
+  })
+  .addCase(getCompanyProfile.rejected, (state, action) => {
+    state.loading = false;
+    state.error = action.payload?.error || action.error.message;
+  })
+  
+  // Update Company Profile
+  .addCase(updateCompanyProfile.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+  })
+  .addCase(updateCompanyProfile.fulfilled, (state, action) => {
+    state.loading = false;
+    state.currentCompany = action.payload;
+  })
+  .addCase(updateCompanyProfile.rejected, (state, action) => {
+    state.loading = false;
+    state.error = action.payload?.error || action.error.message;
+  })
+  // Register Company
+  .addCase(registerCompany.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+  })
+  .addCase(registerCompany.fulfilled, (state, action) => {
+    state.loading = false;
+    state.currentCompany = action.payload;
+  })
+  .addCase(registerCompany.rejected, (state, action) => {
+    state.loading = false;
+    state.error = action.payload?.error || action.error.message;
+  });
   }
 });
 

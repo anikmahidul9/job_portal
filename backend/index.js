@@ -9,10 +9,15 @@ import jobRoute from "./routes/job.route.js";
 import applicationRoute from "./routes/application.route.js"
 import adminRoutes from "./routes/admin.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 dotenv.config({});
 const app = express();
 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -22,6 +27,7 @@ const corsOptions = {
     credentials: true,
 }
 app.use(cors(corsOptions));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/v1/user",userRoute);
 app.use("/api/v1/company",companyRoute);

@@ -1,13 +1,13 @@
 import express from 'express';
 import { login, logOut, register, updateProfile } from '../controller/user.controller.js';
-import { singleUpload } from '../middleware/multer.js';
 import { isAuthenticated } from '../middleware/isAuthenticated.js';
+import upload from '../middleware/upload.middleware.js';
 
 const router = express.Router();
 
-router.route("/register").post(singleUpload, register);
+router.post('/register', upload.single('profilePhoto'), register);
 router.route("/login").post(login);
 router.route("/logout").get(logOut);
-router.route("/profile/update").post(isAuthenticated,singleUpload,updateProfile);
+router.route("/profile/update").post(isAuthenticated,updateProfile);
 
 export default router;
