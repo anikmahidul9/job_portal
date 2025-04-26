@@ -29,10 +29,13 @@ const allowedOrigins = [
   
 const corsOptions = {
     origin: allowedOrigins,
-   
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
 }
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/v1/user",userRoute);
