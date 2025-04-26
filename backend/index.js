@@ -17,7 +17,7 @@ const app = express();
 const allowedOrigins = [
     "https://job-portal-nu-two.vercel.app/", // Your Vercel frontend
     "http://localhost:5173",                  // Local dev
-    "https://job-portal-swart-zeta.vercel.app/"
+    "https://job-portal-swart-zeta.vercel.app"
   ];
 
 const __filename = fileURLToPath(import.meta.url);
