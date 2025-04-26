@@ -14,7 +14,10 @@ import path from 'path';
 
 dotenv.config({});
 const app = express();
-
+const allowedOrigins = [
+    "https://job-portal-nu-two.vercel.app/", // Your Vercel frontend
+    "http://localhost:5173",                  // Local dev
+  ];
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,11 +25,7 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-const allowedOrigins = [
-    "http://job-portal-nu-two.vercel.app/", // Your Vercel frontend
-    "http://localhost:5173",                  // Local dev
-    "https://job-portal-anikmahidul9s-projects.vercel.app/"
-  ];
+
   
 const corsOptions = {
     origin: allowedOrigins,
