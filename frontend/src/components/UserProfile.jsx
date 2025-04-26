@@ -82,8 +82,8 @@ export default function UserProfile() {
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="w-32 h-32 rounded-full border-4 border-blue-500">
                 <AvatarImage
-                  //  src={`http://localhost:8000${user.profile.profilePhoto}`}
-                  src={`https://job-portal-swart-zeta.vercel.app${user.profile.profilePhoto}`}
+                   src={`http://localhost:8000${user.profile.profilePhoto}`}
+                  // src={`https://job-portal-swart-zeta.vercel.app${user.profile.profilePhoto}`}
                   alt="Profile"
                 />
               </Avatar>
