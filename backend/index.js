@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 const allowedOrigins = [
-    "https://job-portal-theta-ten.vercel.app", // Your Vercel frontend
+    "https://job-portal-anikmahidul9s-projects.vercel.app/", // Your Vercel frontend
     "http://localhost:5173",                  // Local dev
   ];
   
