@@ -23,7 +23,7 @@ const LatestJobs = () => {
       </h1>
       <div className="grid grid-cols-3 gap-4 my-5">
         {jobs.slice(0, 6).map((job) => (
-          <LatestJobCards key={job.id} job={job} />
+          <LatestJobCards key={job._id} job={job} />
         ))}
       </div>
     </div>

@@ -1,11 +1,15 @@
-import { getMyJobs } from '@/redux/recruiterSlice';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
+import { getMyJobs } from '@/redux/recruiterSlice';
+import { getApplicationsByJob, clearApplications, setCurrentJobId } from '@/redux/applicationSlice';
+import ApplicantListModal from '../application/ApplicantListModel';
 
 const MyJobs = () => {
   const dispatch = useDispatch();
   const { jobs, loading, error } = useSelector(state => state.recruiter);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showApplicants, setShowApplicants] = useState(false);
 
   useEffect(() => {
     dispatch(getMyJobs());
@@ -17,6 +21,23 @@ const MyJobs = () => {
     }
   }, [error]);
 
+  const handleViewApplicants = (job) => {
+    if (!job?._id) {
+      toast.error('Invalid job selected');
+      return;
+    }
+  
+    dispatch(setCurrentJobId(job._id)); // Add this line
+    dispatch(getApplicationsByJob(job._id))
+      .unwrap()
+      .then(() => {
+        setSelectedJob(job);
+        setShowApplicants(true);
+      })
+      .catch(err => {
+        toast.error(err.message || 'Failed to load applicants');
+      });
+  };
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -93,6 +114,12 @@ const MyJobs = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button 
+                      onClick={() => handleViewApplicants(job)}
+                      className="text-blue-600 hover:text-blue-900 mr-3"
+                    >
+                      View Applicants
+                    </button>
                     <button className="text-blue-600 hover:text-blue-900 mr-3">Edit</button>
                     <button className="text-red-600 hover:text-red-900">Delete</button>
                   </td>
@@ -101,6 +128,16 @@ const MyJobs = () => {
             </tbody>
           </table>
         </div>
+      )}
+
+{showApplicants && selectedJob && (
+        <ApplicantListModal
+          job={selectedJob}
+          onClose={() => {
+            setShowApplicants(false);
+            dispatch(clearApplications());
+          }}
+        />
       )}
     </div>
   );

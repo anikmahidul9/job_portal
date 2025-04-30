@@ -1,17 +1,26 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Tab } from '@headlessui/react';
 import MyJobs from './MyJobs';
 import PostJobForm from './PostJobForm';
 import CompanyProfile from '../company/CompanyProfile';
 import Navbar from '../shared/Navbar';
-
+import { fetchAllJobs } from '@/redux/jobSlice';
 
 
 const RecruiterDashboard = () => {
   const { user } = useSelector(state => state.auth);
   console.log(user);
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const dispatch = useDispatch();
+  const jobs = useSelector((state) => state.jobs.jobs); // Access jobs from the Redux store
+
+
+  useEffect(() => {
+    dispatch(fetchAllJobs()); // Fetch jobs on component mount
+  }, [dispatch]);
+
 
   return (
     <>
@@ -54,6 +63,15 @@ const RecruiterDashboard = () => {
           >
             Company Profile
           </Tab>
+          <Tab
+            className={({ selected }) =>
+              `w-full py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                selected ? 'bg-white shadow text-blue-700' : 'text-blue-500 hover:bg-blue-50'
+              }`
+            }
+          >
+            Applicant List
+          </Tab>
         </Tab.List>
 
         <Tab.Panels className="mt-2">
@@ -61,10 +79,13 @@ const RecruiterDashboard = () => {
             <PostJobForm companyId={user?.company} />
           </Tab.Panel>
           <Tab.Panel>
-            <MyJobs/>
+            <MyJobs onJobSelect={jobs}/>
           </Tab.Panel>
           <Tab.Panel>
             <CompanyProfile companyId={user?.company} />
+          </Tab.Panel>
+          <Tab.Panel>
+            {/* <AllApplicants companyId={user?._id} /> */}
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>

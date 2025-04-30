@@ -1,7 +1,22 @@
 /* eslint-disable react/prop-types */
 
+import { applyForJob } from "@/redux/applicationSlice";
+import { useDispatch, useSelector } from "react-redux";
+
 
 const JobDetails = ({job,handleCloseDialog}) => {
+  const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.application);
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+  const handleApply = () => {
+    if (!isAuthenticated) {
+      console.log("User is not authenticated");
+      return;
+    }
+    console.log("Applying for job:", job._id);
+    dispatch(applyForJob(job._id))
+  };
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
@@ -31,12 +46,15 @@ const JobDetails = ({job,handleCloseDialog}) => {
         >
           Close
         </button>
-        <button
-          className="px-4 py-2 bg-indigo-600 text-white rounded-md"
-          onClick={() => alert("Apply functionality goes here!")}
-        >
-          Apply
-        </button>
+        <div>
+      <button 
+        onClick={handleApply}
+        disabled={loading}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
+        {loading ? 'Applying...' : 'Apply Now'}
+      </button>
+    </div>
       </div>
     </div>
     </div>

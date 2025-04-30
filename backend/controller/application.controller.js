@@ -1,33 +1,49 @@
 import { Application } from "../models/application.model.js";
 import { Job } from "../models/job.model.js";
-import { User } from "../models/user.model.js";
+import mongoose from 'mongoose';
+import { sendStatusEmail } from "../utils/emailService.js";
 
 export const applyJob = async (req, res) => {
     try {
-        const  jobId  = req.params.id;
+        const jobId = req.params.id;
         const userId = req.id;
 
-        const job = await Job.findById(jobId);
-        if (!job) {
-            return res.status(404).json({ message: "Job not found", success: false });
+        // Check if user already applied
+        const existingApplication = await Application.findOne({
+            job: jobId,
+            applicant: userId
+        });
+
+        if (existingApplication) {
+            return res.status(400).json({
+                message: "You've already applied for this job",
+                success: false
+            });
         }
+
+        // Create new application
         const newApplication = await Application.create({
             job: jobId,
             applicant: userId,
-        })
-     
-          job.applications.push(newApplication._id);
-          await job.save();
-          return res.status(201).json({
-            message: "Job applied successfully.",
+            status: 'applied'
+        });
+
+        // Add to job's applications
+        await Job.findByIdAndUpdate(jobId, {
+            $push: { applications: newApplication._id }
+        });
+
+        return res.status(201).json({
+            message: "Application submitted successfully",
             success: true,
-          })
+            application: newApplication
+        });
+
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: "Server error", success: false });
     }
 }
-
 export const getAppliedJob = async (req, res) => {
     try {
         const userId = req.id;
@@ -50,39 +66,106 @@ export const getAppliedJob = async (req, res) => {
 
 export const getApplicants = async (req, res) => {
     try {
-        const jobId = req.params.id;
-        const job = await Job.findById(jobId).populate({
-            path: "applications",
-            options: { sort: { createdAt: -1 } },
-            populate: { path: "applicant" },
+      const jobId = req.params.id;
+      
+      // Validate ObjectId format first
+      if (!mongoose.Types.ObjectId.isValid(jobId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid job ID format"
         });
-        if (!job) {
-            return res.status(404).json({ message: "Job not found", success: false });
-        }
-     
-        return res.status(200).json({ message: "Applicants fetched successfully", success: true, job });
+      }
+  
+      const job = await Job.findOne({ 
+        _id: jobId,
+        created_by: req.id 
+      }).lean();
+  
+      if (!job) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Job not found or unauthorized" 
+        });
+      }
+  
+      const applications = await Application.find({ job: jobId })
+        .populate('applicant', 'name email profile')
+        .lean();
+  
+      return res.status(200).json({
+        success: true,
+        applications
+      });
+  
     } catch (err) {
-        console.error(err);
-        return res.status(500).json({ error: "Server error", success: false });
+      console.error('Error in getApplicants:', err);
+      return res.status(500).json({ 
+        success: false,
+        error: "Server error" 
+      });
     }
-}
+  }
 
-
-export const updateStatus = async (req,res) => {
+  export const updateStatus = async (req, res) => {
     try {
         const applicationId = req.params.id;
-        const { status } = req.body;
+        const { status, interviewDetails } = req.body;
+        
+        // Validate application ID
+        if (!mongoose.Types.ObjectId.isValid(applicationId)) {
+            return res.status(400).json({ 
+                message: "Invalid application ID", 
+                success: false 
+            });
+        }
+
+        const updateData = { 
+            status,
+            updatedAt: new Date() 
+        };
+        
+        if (status === 'interview_invited' && interviewDetails) {
+            updateData.interviewDetails = interviewDetails;
+        }
+
         const application = await Application.findByIdAndUpdate(
             applicationId,
-            { $set: { status } },
+            { $set: updateData },
             { new: true }
-        ).exec();
+        )
+        .populate('applicant', 'name email')
+        .populate('job', 'title');
+
         if (!application) {
-            return res.status(404).json({ message: "Application not found", success: false });
+            return res.status(404).json({ 
+                message: "Application not found", 
+                success: false 
+            });
         }
-        return res.status(200).json({ message: "Application status updated successfully", success: true, application });
+
+        // Send email notification
+        try {
+            await sendStatusEmail({
+                to: application.applicant.email,
+                userName: application.applicant.name,
+                jobTitle: application.job.title,
+                status: status,
+                interviewDetails: application.interviewDetails
+            });
+        } catch (emailError) {
+            console.error('Email sending failed:', emailError);
+        }
+
+        return res.status(200).json({ 
+            message: "Application status updated successfully", 
+            success: true, 
+            application 
+        });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ error: "Server error", success: false });
+        return res.status(500).json({ 
+            error: "Server error", 
+            success: false 
+        });
     }
 }

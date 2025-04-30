@@ -127,9 +127,9 @@ export const logOut = (req, res) => {
       return res.status(500).json({ error: 'Server error', success: false });
     }
   }
-export const updateProfile = async (req, res) => {
+  export const updateProfile = async (req, res) => {
     try {
-      const { name, phoneNumber, bio, skills, resume, company, profilePhoto } = req.body;
+      const { name, phoneNumber, bio, skills } = req.body;
       const userId = req.id;
   
       // Check if phoneNumber is being updated and if it's unique
@@ -139,7 +139,13 @@ export const updateProfile = async (req, res) => {
           return res.status(400).json({ error: "Phone number already in use", success: false });
         }
       }
-  
+
+      // Get current user data to preserve existing profile photo
+      const currentUser = await User.findById(userId);
+      if (!currentUser) {
+        return res.status(404).json({ error: "User not found", success: false });
+      }
+
       const updateData = {
         updatedAt: new Date(),
       };
@@ -147,14 +153,20 @@ export const updateProfile = async (req, res) => {
       if (name) updateData.name = name;
       if (phoneNumber) updateData.phoneNumber = phoneNumber;
   
-      // Profile updates
-      if (bio || skills || resume || company || profilePhoto) {
-        updateData.profile = {};
-        if (bio !== undefined) updateData.profile.bio = bio;
-        if (skills !== undefined) updateData.profile.skills = skills;
-        if (resume !== undefined) updateData.profile.resume = resume;
-        if (company !== undefined) updateData.profile.company = company;
-        if (profilePhoto !== undefined) updateData.profile.profilePhoto = profilePhoto;
+      // Handle profile updates while preserving existing profile photo
+      if (bio || skills || req.file) {
+        updateData.profile = {
+          ...currentUser.profile, // Preserve all existing profile data including profilePhoto
+          bio: bio !== undefined ? bio : currentUser.profile?.bio,
+          skills: skills !== undefined 
+            ? (Array.isArray(skills) ? skills : skills.split(',')) 
+            : currentUser.profile?.skills,
+        };
+        
+        // Only update resume if new file is uploaded
+        if (req.file) {
+          updateData.profile.resume = `/uploads/resumes/${req.file.filename}`;
+        }
       }
   
       const user = await User.findByIdAndUpdate(
@@ -162,10 +174,6 @@ export const updateProfile = async (req, res) => {
         { $set: updateData },
         { new: true }
       ).exec();
-  
-      if (!user) {
-        return res.status(404).json({ error: "User not found", success: false });
-      }
   
       return res.status(200).json({ 
         message: "Profile updated successfully", 
@@ -176,8 +184,7 @@ export const updateProfile = async (req, res) => {
       console.error(err);
       return res.status(500).json({ error: "Server error", success: false });
     }
-  };
-
+};
 
 
 

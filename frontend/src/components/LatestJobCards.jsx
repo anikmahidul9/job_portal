@@ -46,7 +46,7 @@ const LatestJobCards = ({ job }) => {
         )}
       </div>
     </div>
-    {isDialogOpen && (<JobDetails job={job} handleCloseDialog={handleCloseDialog} />)}
+    {isDialogOpen && (<JobDetails job={job} key={job._id} handleCloseDialog={handleCloseDialog} />)}
     </>
   );
 };
