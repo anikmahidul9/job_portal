@@ -42,24 +42,43 @@ export const postJob = async (req, res) => {
       });
     }
   }
-export const getAllJobs = async (req, res) =>{
-    const keywords = req.query.keywords || [];
-    const query = {
-        $or: [
-            { title: { $regex: keywords.join(' '), $options: 'i' } },
-            { description: { $regex: keywords.join(' '), $options: 'i' } },
-            { location: { $regex: keywords.join(' '), $options: 'i' } },
-            { skills: { $all: keywords } },
-        ],
+export const getAllJobs = async (req, res) => {
+    try {
+      const { search, location, jobType } = req.query;
+      let query = {};
+      
+      // Text search across multiple fields
+      if (search) {
+        query.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { 'company.name': { $regex: search, $options: 'i' } },
+          { skills: { $in: [new RegExp(search, 'i')] } }
+        ];
+      }
+      
+      // Additional filters
+      if (location) query.location = { $regex: location, $options: 'i' };
+      if (jobType) query.jobType = jobType;
+      
+      const jobs = await Job.find(query)
+        .populate("company", "name logo")
+        .sort({ createdAt: -1 }); // Newest first
+      
+      return res.status(200).json({ 
+        success: true, 
+        count: jobs.length,
+        jobs 
+      });
+      
+    } catch (err) {
+      console.error('Search error:', err);
+      return res.status(500).json({ 
+        success: false,
+        error: 'Server error during search' 
+      });
     }
-    const jobs = await Job.find(query)
-    .populate("company", "name logo") // Populate the company field with only the name
-    .exec();
-    if(!jobs){
-        return res.status(404).json({ message: 'No jobs found', success: false });
-    }
-    return res.status(200).json({ message: 'Jobs fetched successfully', success: true, jobs });
-}
+  }
 
 export const getJobById = async (req, res) => {
     try{

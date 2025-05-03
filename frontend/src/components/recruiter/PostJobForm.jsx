@@ -16,6 +16,7 @@ const PostJobForm = () => {
         position: ''
       });
       const jobTypes = [
+        'govt',
         'full-time',
         'part-time',
         'contract',

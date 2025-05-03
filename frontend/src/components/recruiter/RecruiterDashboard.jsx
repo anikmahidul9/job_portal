@@ -6,6 +6,7 @@ import PostJobForm from './PostJobForm';
 import CompanyProfile from '../company/CompanyProfile';
 import Navbar from '../shared/Navbar';
 import { fetchAllJobs } from '@/redux/jobSlice';
+import JobListings from './JobListings';
 
 
 const RecruiterDashboard = () => {
@@ -70,7 +71,7 @@ const RecruiterDashboard = () => {
               }`
             }
           >
-            Applicant List
+            Payment
           </Tab>
         </Tab.List>
 
@@ -85,7 +86,7 @@ const RecruiterDashboard = () => {
             <CompanyProfile companyId={user?.company} />
           </Tab.Panel>
           <Tab.Panel>
-            {/* <AllApplicants companyId={user?._id} /> */}
+           <JobListings/>
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
