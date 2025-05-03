@@ -169,3 +169,63 @@ export const getApplicants = async (req, res) => {
         });
     }
 }
+
+export const getUserApplicationStatuses = async (req, res) => {
+    try {
+        const userId = req.id; // Get logged-in user ID
+        
+        // Find all applications with status and basic job info
+        const applications = await Application.find({ applicant: userId })
+            .select('status createdAt updatedAt interviewDetails')
+            .populate({
+                path: 'job',
+                select: 'title company',
+                populate: {
+                    path: 'company',
+                    select: 'name'
+                }
+            })
+            .sort({ updatedAt: -1 }); // Sort by most recent update
+
+        if (!applications || applications.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No applications found",
+                statuses: []
+            });
+        }
+
+        // Format the response with status information
+        const statuses = applications.map(app => ({
+            jobId: app.job._id,
+            jobTitle: app.job.title,
+            companyName: app.job.company.name,
+            status: app.status,
+            lastUpdated: app.updatedAt,
+            appliedDate: app.createdAt,
+            interviewDetails: app.interviewDetails || null
+        }));
+
+        // Count statuses for summary
+        const statusSummary = applications.reduce((acc, app) => {
+            acc[app.status] = (acc[app.status] || 0) + 1;
+            return acc;
+        }, {});
+
+        return res.status(200).json({
+            success: true,
+            statuses,
+            summary: {
+                total: applications.length,
+                ...statusSummary
+            }
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ 
+            success: false,
+            error: "Failed to fetch application statuses" 
+        });
+    }
+}

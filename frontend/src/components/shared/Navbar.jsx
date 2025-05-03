@@ -94,7 +94,8 @@ const Navbar = () => {
                 <div className="flex items-center gap-2 cursor-pointer">
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src={`http://localhost:8000${user.profile.profilePhoto}`}
+                      // src={`http://localhost:8000${user.profile.profilePhoto}`} //https://job-portal-kc3x.onrender.com/api/v1/
+                      src={`https://job-portal-kc3x.onrender.com${user.profile.profilePhoto}`}
                     />
                     <AvatarFallback>
                       {user.name.charAt(0).toUpperCase()}
