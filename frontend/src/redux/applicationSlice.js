@@ -11,8 +11,8 @@ const initialState = {
 };
 
 const applicationApi = axios.create({
-  baseURL: 'http://localhost:8000/api/v1/',
-  // baseURL: 'https://job-portal-kc3x.onrender.com/api/v1/',
+  // baseURL: 'http://localhost:8000/api/v1/',
+  baseURL: 'https://job-portal-kc3x.onrender.com/api/v1/',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

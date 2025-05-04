@@ -52,8 +52,8 @@ const handleStatusUpdate = (status) => {
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
       <div>
                     <a 
-                      href={`http://localhost:8000${application.applicant.profile?.resume}`}
-                      // href={`https://job-portal-kc3x.onrender.com${application.applicant.profile?.resume}`}
+                      // href={`http://localhost:8000${application.applicant.profile?.resume}`}
+                      href={`https://job-portal-kc3x.onrender.com${application.applicant.profile?.resume}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"

@@ -12,8 +12,8 @@ export function CompanyList() {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/v1/company/get');
-        // const response = await axios.get('https://job-portal-kc3x.onrender.com/api/v1/company/get');
+        // const response = await axios.get('http://localhost:8000/api/v1/company/get');
+        const response = await axios.get('https://job-portal-kc3x.onrender.com/api/v1/company/get');
         setCompanies(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");

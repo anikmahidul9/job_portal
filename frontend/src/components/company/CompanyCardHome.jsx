@@ -9,8 +9,8 @@ export function CompanyList() {
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/v1/company/get');
-        // const response = await fetch('https://job-portal-kc3x.onrender.com/api/v1/company/get');
+        // const response = await fetch('http://localhost:8000/api/v1/company/get');
+        const response = await fetch('https://job-portal-kc3x.onrender.com/api/v1/company/get');
         const data = await response.json();
         // Validate data is an array
         setCompanies(data.companies);

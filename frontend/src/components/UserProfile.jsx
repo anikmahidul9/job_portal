@@ -120,8 +120,8 @@ export default function UserProfile() {
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="w-32 h-32 rounded-full border-4 border-blue-500">
                 <AvatarImage
-                  src={`http://localhost:8000${user.profile.profilePhoto}`}
-                  // src={`https://job-portal-kc3x.onrender.com${user.profile?.profilePhoto}`}
+                  // src={`http://localhost:8000${user.profile.profilePhoto}`}
+                  src={`https://job-portal-kc3x.onrender.com${user.profile?.profilePhoto}`}
                   alt="Profile"
                 />
               </Avatar>
@@ -165,8 +165,8 @@ export default function UserProfile() {
                   <div>
                     <h3 className="text-xl font-semibold text-gray-700">Resume</h3>
                     <a 
-                      href={`http://localhost:8000${user.profile.resume}`}
-                      // href={`https://job-portal-kc3x.onrender.com${user.profile.resume}`}
+                      // href={`http://localhost:8000${user.profile.resume}`}
+                      href={`https://job-portal-kc3x.onrender.com${user.profile.resume}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline"

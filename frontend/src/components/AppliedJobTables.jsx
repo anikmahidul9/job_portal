@@ -14,8 +14,8 @@ export default function AppliedJobTable() {
           throw new Error('No authentication token found');
         }
   
-        const response = await fetch('http://localhost:8000/api/v1/application/user-application', {
-          // const response = await fetch('https://job-portal-kc3x.onrender.com/api/v1/application/user-application', {
+        // const response = await fetch('http://localhost:8000/api/v1/application/user-application', {
+          const response = await fetch('https://job-portal-kc3x.onrender.com/api/v1/application/user-application', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

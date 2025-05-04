@@ -2,8 +2,8 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const adminApi = axios.create({
-  baseURL: 'http://localhost:8000/api/v1/admin',
-  // baseURL: 'https://job-portal-kc3x.onrender.com/api/v1/admin',
+  // baseURL: 'http://localhost:8000/api/v1/admin',
+  baseURL: 'https://job-portal-kc3x.onrender.com/api/v1/admin',
   withCredentials: true,
 });
 
