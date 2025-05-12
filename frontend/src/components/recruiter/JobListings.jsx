@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { getMyJobs } from '@/redux/recruiterSlice';
-import PaymentModal from './PaymentModal';
+import PaymentButton from '../payment/PaymentButton';
 
 const JobListings = () => {
   const dispatch = useDispatch();
@@ -118,15 +118,9 @@ const JobListings = () => {
       )}
 
       {showPaymentModal && (
-        <PaymentModal
-          amount={100 * (jobCount - 4)} // 100 TK for each job beyond 5
-          paymentMethods={['bKash', 'Nagad', 'Card']}
-          onSuccess={() => {
-            setShowPaymentModal(false);
-            toast.success('Payment successful! You can now post your job');
-            // navigate('/post-job');
-          }}
-          onClose={() => setShowPaymentModal(false)}
+ 
+        <PaymentButton amount={100 * (jobCount - 4)}
+           onClose={() => setShowPaymentModal(false)}
         />
       )}
     </div>

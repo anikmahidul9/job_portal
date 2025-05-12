@@ -17,6 +17,6 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    historyApiFallback: true, // Moved this inside the server object
   },
 });
-

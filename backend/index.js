@@ -9,6 +9,7 @@ import jobRoute from "./routes/job.route.js";
 import applicationRoute from "./routes/application.route.js"
 import adminRoutes from "./routes/admin.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import payment from "./routes/payment.routes.js";
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -45,6 +46,7 @@ app.use("/api/v1/job",jobRoute);
 app.use("/api/v1/application",applicationRoute);
 app.use('/api/v1/admin', adminRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/payment", payment);
 
 const PORT =process.env.PORT|| 3000
 app.listen(PORT, ()=>{

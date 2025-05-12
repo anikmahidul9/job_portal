@@ -11,7 +11,6 @@ import JobListings from './JobListings';
 
 const RecruiterDashboard = () => {
   const { user } = useSelector(state => state.auth);
-  console.log(user);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const dispatch = useDispatch();
@@ -21,7 +20,6 @@ const RecruiterDashboard = () => {
   useEffect(() => {
     dispatch(fetchAllJobs()); // Fetch jobs on component mount
   }, [dispatch]);
-
 
   return (
     <>

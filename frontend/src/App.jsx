@@ -11,6 +11,7 @@ import Unauthorized from './components/Unauthorized';
 import NotFound from './components/NotFound';
 import RecruiterRoute from './components/recruiter/ProtectedRoute';
 import RecruiterDashboard from './components/recruiter/RecruiterDashboard';
+import PaymentSuccess from './components/payment/PaymentSuccess';
 
 const appRouter = createBrowserRouter([
   {
@@ -34,6 +35,11 @@ const appRouter = createBrowserRouter([
     element: <Browse />,
   },
   {
+    path:'/payment/success',
+    element: <PaymentSuccess />,
+
+   },
+  {
     path: '/profile',
     element: (
       <ProtectedRoute>
@@ -41,6 +47,7 @@ const appRouter = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+
   {
     path: '/admin/dashboard',
     element: (

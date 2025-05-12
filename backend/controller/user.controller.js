@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { User } from "../models/user.model.js";
+import cloudinary from '../utils/cloudinary.js';
 
 
 
@@ -33,10 +34,14 @@ export const register = async (req, res) => {
 
       // Handle profile photo if uploaded
       if (req.file) {
-          newUser.profile.profilePhoto = `/uploads/profile-photos/${req.file.filename}`;
-      }
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: 'profile-photos',
+            transformation: { width: 200, height: 200, crop: 'fill' }
+        });
+        newUser.profile.profilePhoto = result.secure_url;
+    }
 
-      await newUser.save();
+    await newUser.save();
       
       return res.status(201).json({
           message: "Account created successfully",
@@ -127,7 +132,8 @@ export const logOut = (req, res) => {
       return res.status(500).json({ error: 'Server error', success: false });
     }
   }
-  export const updateProfile = async (req, res) => {
+// file: user.controller.js (update the updateProfile function)
+export const updateProfile = async (req, res) => {
     try {
       const { name, phoneNumber, bio, skills } = req.body;
       const userId = req.id;
@@ -154,18 +160,33 @@ export const logOut = (req, res) => {
       if (phoneNumber) updateData.phoneNumber = phoneNumber;
   
       // Handle profile updates while preserving existing profile photo
-      if (bio || skills || req.file) {
+      if (bio || skills || req.files) {
         updateData.profile = {
-          ...currentUser.profile, // Preserve all existing profile data including profilePhoto
+          ...currentUser.profile, // Preserve all existing profile data
           bio: bio !== undefined ? bio : currentUser.profile?.bio,
           skills: skills !== undefined 
-            ? (Array.isArray(skills) ? skills : skills.split(',')) 
+            ? (Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim()))
             : currentUser.profile?.skills,
         };
         
-        // Only update resume if new file is uploaded
-        if (req.file) {
-          updateData.profile.resume = `/uploads/resumes/${req.file.filename}`;
+        // Handle profile photo upload if exists
+        if (req.files?.profilePhoto) {
+          const profilePhoto = req.files.profilePhoto[0];
+          const result = await cloudinary.uploader.upload(profilePhoto.path, {
+            folder: 'profile-photos',
+            transformation: { width: 200, height: 200, crop: 'fill' }
+          });
+          updateData.profile.profilePhoto = result.secure_url;
+        }
+        
+        // Handle resume upload if exists
+        if (req.files?.resume) {
+          const resume = req.files.resume[0];
+          const result = await cloudinary.uploader.upload(resume.path, {
+            folder: 'resumes',
+            resource_type: 'raw'
+          });
+          updateData.profile.resume = result.secure_url;
         }
       }
   

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogTrigger,
@@ -19,12 +19,20 @@ import { toast } from "sonner";
 import axios from "axios";
 import { USER_API_ENDPOINT } from "@/utils/constant";
 
+import { pdfjs } from 'react-pdf';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 export default function UserProfile() {
   const { user } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
   const isRecruiterOrAdmin = ['recruiter', 'admin'].includes(user?.role);
 
   const [isEditing, setIsEditing] = useState(false);
+
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -35,6 +43,8 @@ export default function UserProfile() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedResume, setSelectedResume] = useState(null);
+  const [selectedProfilePhoto, setSelectedProfilePhoto] = useState(null);
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
 
   // Initialize form with user data
   useEffect(() => {
@@ -47,30 +57,50 @@ export default function UserProfile() {
         skills: user.profile?.skills || [],
         resume: user.profile?.resume || ''
       });
+      if (user.profile?.profilePhoto) {
+        setProfilePhotoPreview(user.profile.profilePhoto);
+      }
     }
   }, [user]);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedResume(file);
-      // Show the file name to user
       setFormData(prev => ({
         ...prev,
         resume: file.name
       }));
+
+      // Create preview URL for PDF
+    }
+  };
+
+  // Clean up object URLs when component unmounts
+
+
+  const handleProfilePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedProfilePhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+  
     try {
       const formDataToSend = new FormData();
       
@@ -80,19 +110,21 @@ export default function UserProfile() {
       formDataToSend.append('bio', formData.bio);
       formDataToSend.append('skills', formData.skills.join(','));
       
-      // Append resume file if selected
+      // Append files if selected
+      if (selectedProfilePhoto) {
+        formDataToSend.append('profilePhoto', selectedProfilePhoto);
+      }
       if (selectedResume) {
         formDataToSend.append('resume', selectedResume);
       }
-
+  
       const response = await axios.put(`${USER_API_ENDPOINT}/upload-resume`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-
-      // Update Redux store with new user data
+  
       dispatch(setAuthUser({ 
         user: response.data.user, 
         token: localStorage.getItem('token') 
@@ -101,15 +133,19 @@ export default function UserProfile() {
       toast.success('Profile updated successfully');
       setIsEditing(false);
       setSelectedResume(null);
+      setSelectedProfilePhoto(null);
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error(error.response?.data?.error || 'Failed to update profile');
+      if (error.response) {
+        console.error('Server response:', error.response.data);
+        toast.error(error.response.data.error || 'Failed to update profile');
+      } else {
+        toast.error('Error connecting to server');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
-
- 
 
   return (
     <>
@@ -118,13 +154,44 @@ export default function UserProfile() {
         <Card className="max-w-4xl w-full bg-white shadow-xl rounded-lg p-8">
           <CardHeader>
             <div className="flex flex-col items-center space-y-4">
-              <Avatar className="w-32 h-32 rounded-full border-4 border-blue-500">
-                <AvatarImage
-                  // src={`http://localhost:8000${user.profile.profilePhoto}`}
-                  src={`https://job-portal-kc3x.onrender.com${user.profile?.profilePhoto}`}
-                  alt="Profile"
-                />
-              </Avatar>
+              <div className="relative group">
+                <Avatar className="w-32 h-32 rounded-full border-4 border-blue-500">
+                  {profilePhotoPreview ? (
+                    <img 
+                      src={profilePhotoPreview} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover rounded-full"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `https://ui-avatars.com/api/?name=${user?.name || 'User'}&background=random`;
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-300 flex items-center justify-center text-4xl text-gray-600 rounded-full">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </Avatar>
+                {isEditing && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Label htmlFor="profilePhoto" className="cursor-pointer">
+                      <div className="bg-white p-2 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                    </Label>
+                    <Input
+                      id="profilePhoto"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePhotoChange}
+                      className="hidden"
+                    />
+                  </div>
+                )}
+              </div>
               <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-800">
                   {user?.name}
@@ -161,20 +228,21 @@ export default function UserProfile() {
                     </div>
                   </div>
                 )}
-                {user?.profile?.resume && (
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-700">Resume</h3>
-                    <a 
-                      // href={`http://localhost:8000${user.profile.resume}`}
-                      href={`https://job-portal-kc3x.onrender.com${user.profile.resume}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      View Resume
-                    </a>
-                  </div>
-                )}
+           {user?.profile?.resume && (
+    <div>
+      <h3 className="text-xl font-semibold text-gray-700">Resume</h3>
+      <div className="mt-2">
+        <a 
+          href={user.profile.resume}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline"
+        >
+          View Full Resume
+        </a>
+      </div>
+    </div>
+  )}
               </div>
             ) : (
               <div className="text-center">
@@ -202,6 +270,38 @@ export default function UserProfile() {
                   </h2>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+                  <div className="flex flex-col items-center">
+                    <div className="relative group mb-4">
+                      <Avatar className="w-24 h-24 rounded-full border-4 border-blue-500">
+                        {profilePhotoPreview ? (
+                          <img 
+                            src={profilePhotoPreview} 
+                            alt="Profile" 
+                            className="w-full h-full object-cover rounded-full"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-300 flex items-center justify-center text-2xl text-gray-600 rounded-full">
+                            {user?.name?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </Avatar>
+                      <Label htmlFor="profilePhoto" className="absolute bottom-0 right-0 bg-white p-2 rounded-full cursor-pointer shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </Label>
+                      <Input
+                        id="profilePhoto"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePhotoChange}
+                        className="hidden"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500">Click on the camera icon to change profile photo</p>
+                  </div>
+
                   <div>
                     <Label htmlFor="name" className="text-lg font-medium text-gray-700">
                       Name
@@ -300,7 +400,11 @@ export default function UserProfile() {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      onClick={() => setIsEditing(false)}
+                      onClick={() => {
+                        setIsEditing(false);
+                        setSelectedProfilePhoto(null);
+                        setProfilePhotoPreview(user?.profile?.profilePhoto || null);
+                      }}
                       className="px-6 py-2"
                       disabled={isSubmitting}
                     >
