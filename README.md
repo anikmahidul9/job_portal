@@ -1,46 +1,224 @@
-# Job Portal Project
+# 💼 Job Portal Web Application
 
-Welcome to the **Job Portal** project! This is a full-featured web application designed to connect job seekers with employers. It serves as a platform where users can browse job listings, apply for positions, and employers can post vacancies and manage applications.
+A modern full-stack **Job Portal Platform** where recruiters can post jobs, candidates can apply, and admins manage approvals — built with MERN stack and modern UI tools.
 
-> **Note:** This project is part of my practice and skill-building journey. While the project is a work in progress, I am dedicated to enhancing my expertise in web development and delivering high-quality, professional applications. 
+---
 
-## Features
+## 🌟 Live Features
 
-### For Job Seekers:
-- **User Registration & Authentication**: Create an account, log in, and manage your profile.
-- **Job Listings**: Browse and filter job listings by category, location, and job type.
-- **Apply for Jobs**: Submit your application and resume directly to employers.
-- **Profile Customization**: Create and update your profile, including your skills, experience, and resume.
+### 👨‍💼 Recruiter
 
-### For Employers:
-- **Job Posting**: Post job openings with detailed descriptions, qualifications, and requirements.
-- **Manage Applications**: Review, filter, and respond to job applicants.
-- **Company Profile**: Manage your company’s profile and job offerings.
+* Register & create profile
+* Wait for admin approval
+* Post and manage job listings
+* View applicants
 
-## Tech Stack
+### 👤 Candidate (User)
 
-This project utilizes the following technologies:
+* Search jobs by keyword
+* Filter jobs (location, industry, salary)
+* Apply for jobs
+* Save jobs for later
+* Upload resume
 
-- **Frontend**:
-  - **React.js**: React framework for building the user interface.
-  - **Tailwind CSS**: Utility-first CSS framework for designing responsive and attractive layouts.
-  
-- **Backend**:
-  - **Node.js**: Backend server using Express for API handling.
-  - **MongoDB / PostgreSQL**: Database for storing user profiles, job postings, and applications.
-  - **Socket.IO / WebRTC**: Real-time updates and messaging for notifications or job application status.
-  
-- **Tools and Libraries**:
-  - **JWT**: Secure authentication and authorization using JSON Web Tokens.
-  - **Mongoose** (if using MongoDB): For database schema modeling and querying.
-  - **Sequelize** (if using PostgreSQL): For database interaction and query building.
-  - **Postman**: For API testing and documentation.
+### 🛡️ Admin
 
-## Setup Instructions
+* Approve recruiter accounts
+* Manage job postings
+* Control platform access
 
-To run this project locally, follow these steps:
+### 📧 Email System
 
-### Prerequisites:
-- Node.js and npm installed.
-- MongoDB/PostgreSQL setup (depending on the database you choose).
+* Email notifications for:
+
+  * Recruiter approval
+  * Job application updates
+
+---
+
+## 🖼️ UI Overview
+
+### 🔍 Home Page
+
+* Job search bar
+* Featured categories (Frontend, Backend)
+* Latest & top job listings
+
+### 📋 Job Listing Page
+
+* Advanced filters:
+
+  * Location
+  * Industry
+  * Salary range
+* Job cards with:
+
+  * Company info
+  * Job type & salary
+  * Save & Apply options
+
+---
+
+## 🛠️ Tech Stack
+
+### 🔧 Backend
+
+* Node.js
+* Express.js
+* MongoDB (Mongoose)
+* JWT Authentication
+* Cloudinary (file uploads)
+* Nodemailer (email sending)
+
+### 🎨 Frontend
+
+* React (Vite)
+* Redux Toolkit
+* React Router DOM
+* Tailwind CSS
+* Axios
+
+---
+
+## 📁 Folder Structure
+
+```
+project-root/
+│
+├── backend/
+│   ├── controller/      # Business logic (auth, jobs, users)
+│   ├── middleware/      # Auth middleware, error handling
+│   ├── models/          # MongoDB schemas
+│   ├── routes/          # API routes
+│   ├── uploads/         # File storage
+│   ├── utils/           # Helper utilities (email, cloudinary)
+│   ├── index.js         # Server entry point
+│   └── package.json
+│
+├── frontend/
+│   ├── public/          # Static files
+│   ├── src/             # React app source
+│   ├── components.json
+│   ├── index.html
+│   └── package.json
+│
+└── README.md
+```
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/anikmahidul9/job_portal
+cd job-portal
+```
+
+---
+
+### 2️⃣ Backend Setup
+
+```bash
+cd backend
+npm install
+```
+
+Create `.env` file inside **backend/**:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+Cloudinary
+CLOUD_NAME=your_cloud_name
+API_KEY=your_api_key
+API_KEY_SECRET=your_api_secret
+
+GMAIL_USER=your_email
+GMAIL_APP_PASSWORD=your_email_password
+SSLCOMMERZ_STORE_ID=your_store_name
+SSLCOMMERZ_STORE_PASSWORD=your_password
+FORNTEND_URL=http://localhost:5173
+```
+
+Run backend:
+
+```bash
+npm run dev
+```
+
+---
+
+### 3️⃣ Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## 🔄 Application Flow
+
+1. Recruiter signs up → waits for admin approval
+2. Admin approves recruiter
+3. Recruiter posts jobs
+4. Candidates browse & apply
+5. Email notifications are triggered
+
+---
+
+## 📌 Key Functionalities
+
+* 🔐 Secure authentication (JWT)
+* 📤 Resume upload (Cloudinary)
+* 💾 Save jobs for later
+* 🔎 Smart job search & filtering
+* 📬 Email notifications system
+
+---
+
+## 📜 Available Scripts
+
+### Backend
+
+```bash
+npm run dev   # Run server with nodemon
+```
+
+### Frontend
+
+```bash
+npm run dev   # Start dev server
+npm run build # Production build
+```
+
+---
+
+## 🚀 Future Improvements
+
+* Real-time notifications
+* Chat between recruiter & candidate
+* Advanced filtering (experience, skills)
+* Admin analytics dashboard
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome! For major changes, open an issue first.
+
+---
+
+---
+
+## 👨‍💻 Author
+
+**Mahidul**
+
+---
+
 
